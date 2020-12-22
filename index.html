@@ -16,6 +16,9 @@
 
         #message-wrapper {
             display: flex;
+            background-image: url(https://nipponcolors.com/images/texture.png);
+            background-color: pink;
+            height: 100vh;
         }
 
         #message-wrapper #messages {
@@ -43,7 +46,6 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-       
         }
 
         .name-title,
@@ -121,6 +123,7 @@
         <h1 class="id-title">ID</h1>
         <input type="text" id="id-box">
         <button id="send">開始諮詢</button>
+        <img src="./heal.png" alt="">
     </div>
     <div id="counselor-status">
         <ul class="counselors">
@@ -131,7 +134,7 @@
         </ul>
     </div>
     <p id="hint"></p>
-    <div class="message-wrapper">
+    <div id="message-wrapper">
         <ul id="messages"></ul>
         <ul id="private-messages"></ul>
     </div>
