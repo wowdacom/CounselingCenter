@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: #000;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 30px;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 90%;
+            margin-right: 0.5%;
+        }
+
+        form button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px 10px;
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
+
+        .cover {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0.9;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .name-title {
+            color: #fff;
+        }
+
+        .name-box {}
+        #hint {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cover">
+        <h1 class="name-title">姓名</h1>
+        <input type="text" id="name-box">
+    </div>
+    <p id="hint">1234</p>
+    <ul id="messages"></ul>
+    <form action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    document.onreadystatechange = function () {
+        function debounce(callback, delay) {
+            let timer = null;
+            return function () {
+                let context = this;
+                let args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    callback.apply(context, args);
+                }, delay);
+            };
+        }
+
+        if (document.readyState == "interactive") {
+            var socket = io();
+            let namebox = document.getElementById('name-box');
+
+            console.log(namebox)
+            namebox.addEventListener('keydown', function handler(e) {
+                
+                if (e.key == "Enter") {
+                    if (namebox.value !== "") {
+                        let cover = document.querySelector(".cover")
+                        cover.style.display = 'none'
+
+                        socket.emit('hello', namebox.value);
+                        e.currentTarget.removeEventListener(e.type, handler);
+                    }
+                }
+                // e.preventDefault();
+            })
+
+            var msg = document.querySelector("#m");
+
+            
+            msg.addEventListener('keydown', function handler(e) {
+                debounce(socket.emit('hint', namebox.value), 500)
+            })
+
+            document.querySelector('form').addEventListener("submit", function (e) {
+                e.preventDefault();
+                socket.emit('chat message', msg.value);
+                msg.value = '';
+                return false;
+            });
+
+            socket.on('chat message', function (msg) {
+                let message = document.querySelector("#messages")
+                let node = document.createElement("li"); // Create a <li> node
+                let textnode = document.createTextNode(msg); // Create a text node
+                node.appendChild(textnode);
+                message.appendChild(node);
+            });
+
+            socket.on('hint', function (msg) {
+                let hint = document.querySelector("#hint")
+                hint.innerHTML = msg
+                setTimeout(function(){
+                    hint.innerHTML = ""
+                }, 500)
+            });
+
+        }
+
+    }
+</script>
+
+</html>
