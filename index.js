@@ -1,6 +1,7 @@
 let app = require('express')();
 let http = require('http').createServer(app);
 let io = require('socket.io')(http);
+let counselor = [{name: 'Peter', status: 0}, {name: 'Helen', status: 0}, {name: 'John', status: 0}, {name: 'Mary', status: 0}]
 
 
 app.get('/', (req, res) => {
@@ -10,15 +11,28 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   let user_name = ""
+  let user_id = ""
   let last_message = ""
 
-  socket.on('hello', (name) => {
+  socket.on('login', (name, id) => {
     user_name = name
-    io.emit('chat message', `Hello! ${user_name}`);
+    user_id = id
+    io.emit('chat message', `Hello! ${user_name} ${socket.id}`);
+    if (counselor.map(item=>item.name).includes(id)) {
+      let current_id = counselor.map(item=>item.name).indexOf(id)
+      counselor[current_id].status = 1
+    }
+    io.emit('counselor status', counselor.map(item=>item.status));
+  });
+
+  socket.on('say to someone', (id, msg) => {
+    console.log(id, msg)
+    socket.to(id).emit('chat message', msg, id);
+    // send a private message to the socket with the given id
+    // socket.to(id).emit('my message', msg, id);
   });
 
   socket.on('hint', () => {
-    console.log(`${user_name} is typing...`)
     io.emit('hint', `${user_name} is typing...`);
   });
 
@@ -31,7 +45,6 @@ io.on('connection', (socket) => {
     io.emit('chat message',`${user_name}: ${last_message}`);
   })
   socket.on('disconnect', () => {
-    console.log('user disconnected');
     io.emit('chat message', `${user_name}已離開`);
   });
 });
